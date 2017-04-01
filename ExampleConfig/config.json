@@ -1,0 +1,63 @@
+{
+	"db" : {
+		"DbName": "mydb.db",
+		"LogFile": "db.log",
+		"StopOnError": "false",
+		"UseExistingDb": "false"
+	},
+	"extract" : {
+		"Source": "Flatfiles",
+		"Schemas": "Schemas",
+		"SeedData": "SeedData",
+		"Delimiter": "\t",
+		"Quote": "\"",
+		"LineTerminator": "auto",
+		"MissingColumns": {
+			"MissingColumnHandling": "error",	
+			"MissingColumnFillValue": ""	
+		},
+		"IgnoreTooManyColumns": "false"
+	},
+	"validate" : {
+		"ValidationSource": "Validation",
+		"FirstErrorOnly": "false",
+		"ErrorLimit": "2147483647",
+		"Outputs": {
+			"StandardOutputType": "delimited",
+			"StandardOutputDelimiter": "\t",
+			"StandardOutputConnectionString": "output.txt",
+			"ErrorOutputConnectionString": "Error.log",
+			"Verbose": "true",
+			"VerboseOutputConnectionString": "stdout.txt",
+			"Warnings": "false",
+			"WarningsDestination": "W.Log"	
+		}
+		, "SchemaErrorSettings": {}
+	},
+	"transform" : {
+		"Transformations": "../transformations/Folder",
+		"Outputs": {
+			"StandardOutputType": "file",
+			"StandardOutputConnectionString": "file.this",
+			"ErrorOutputConnectionString": "Error.log",
+			"Verbose": "false",
+			"VerboseOutputConnectionString": "V.Log"
+		}
+	},
+	"load" : {
+		"Loads": "Loads",
+		"Outputs": {
+			"StandardOutputType": "sql-server",
+			"StandardOutputConnectionString": "file.this",
+			"ErrorOutput": "Error.log",
+			"Verbose": "false",
+			"VerboseOutput": "V.Log"
+		}
+	},
+	"steps" : {
+		"extract": "true",
+		"validate": "true",
+		"transform": "false",
+		"load": "false"
+	}
+}

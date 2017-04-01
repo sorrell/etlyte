@@ -1,0 +1,83 @@
+{
+  "name": "ArsonAgencyReferral",
+  "version": 1.0,
+  "flatfile": "arsonagencyreferal.txt",
+  "delimiter": "^",
+  "header": true,
+  "fields": [
+  {
+    "name": "STATE",
+    "required": true,
+    "minLength": 2,
+    "maxLength": 2
+  },
+  {
+    "name": "FDID",
+    "required": true
+  },
+  {
+    "name": "INC_DATE",
+    "required": true,
+    "minLength": 8,
+    "maxLength": 8,
+    "datatype": "DateTime",
+    "datePattern": "Mddyyyy"
+  },
+  {
+    "name": "INC_NO",
+    "required": true
+  },
+  {
+    "name": "EXP_NO",
+    "datatype": "int"
+  },
+  {
+    "name": "VERSION"
+  },
+  {
+    "name": "AG_ST_NUM"
+  },
+  {
+    "name": "AG_ST_PREF"
+  },
+  {
+    "name": "AG_STREET"
+  },
+  {
+    "name": "AG_ST_TYPE"
+  },
+  {
+    "name": "AG_ST_SUFF"
+  },
+  {
+    "name": "AG_APT_NO"
+  },
+  {
+    "name": "AG_CITY"
+  },
+  {
+    "name": "AG_STATE"
+  },
+  {
+    "name": "AG_ZIP5"
+  },
+  {
+    "name": "AG_ZIP4"
+  },
+  {
+    "name": "AG_PHONE"
+  },
+  {
+    "name": "AG_CASE_NO"
+  },
+  {
+    "name": "AG_ORI"
+  },
+  {
+    "name": "AG_FID"
+  },
+  {
+    "name": "AG_FDID"
+  }
+ ]
+}
