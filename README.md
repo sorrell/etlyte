@@ -82,6 +82,8 @@ You can either download the zip files (ETLyte.zip or ETLyte\_Example.zip) or clo
 The general goal behind ETLyte is to validate CSV data, including across multiple files.  It can however
 be extended to load MSSQL (in progress).
 
+Watch the overview [video here](https://www.youtube.com/watch?v=jsrXv0dwnLI).
+
 ### General Usage
 To use ETLyte, you will want to take a look at the examples in the ExampleConfig folder.  The general formula is: 
 
