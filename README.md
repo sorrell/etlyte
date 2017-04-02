@@ -84,6 +84,8 @@ be extended to load MSSQL (in progress).
 
 Watch the overview [video here](https://www.youtube.com/watch?v=jsrXv0dwnLI).
 
+**NOTE:** Because I'm still creating documentation and "recipes" for ETLyte (aka, there is scant documentation at the moment), feel free to contact me with any questions - cincyfire _at_ gmail.com
+
 ### General Usage
 To use ETLyte, you will want to take a look at the examples in the ExampleConfig folder.  The general formula is: 
 
