@@ -5,6 +5,8 @@ The interactive CLI exposes the custom .NET functions that, among other useful t
 
 The inspiration and attribution for this tool goes to Dealers Assurance Corp, who hired me to consult and create this tool.
 
+![etlyte-overview](https://cint.io/ETLyte/etlyte.png)
+
 More details on the DLL and EXE below.
 
 ### DLL
