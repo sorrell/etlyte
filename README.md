@@ -7,6 +7,8 @@ The inspiration and attribution for this tool goes to Dealers Assurance Corp, wh
 
 ![etlyte-overview](https://cint.io/ETLyte/etlyte.png)
 
+[See full documentation here](https://sorrell.github.io/etlyte)
+
 More details on the DLL and EXE below.
 
 ### DLL
@@ -83,6 +85,8 @@ You can either download the zip files (ETLyte.zip or ETLyte\_Example.zip) or clo
 ## Usage
 The general goal behind ETLyte is to validate CSV data, including across multiple files.  It can however
 be extended to load MSSQL (in progress).
+
+[See full documentation here](https://sorrell.github.io/etlyte)
 
 Watch the overview [video here](https://www.youtube.com/watch?v=jsrXv0dwnLI).
 
