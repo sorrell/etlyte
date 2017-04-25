@@ -1,7 +1,7 @@
 ---
 layout: page
-title: "Functions"
-category: doc
+title: "General Functions"
+category: funcs
 date: 2017-04-24 23:12:50
 ---
 
