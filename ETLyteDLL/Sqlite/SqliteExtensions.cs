@@ -291,6 +291,19 @@ namespace ETLyteDLL
 
         public static Func<ISQLiteValue> uuidFunc = () => { return System.Guid.NewGuid().ToSQLiteValue(); };
 
+        public static Func<ISQLiteValue, ISQLiteValue> rowNumFunc = (ISQLiteValue key) => 
+            {
+                string k = Convert.ToString(key);
+                int retVal = 0;
+                if (RowNumDictionary.ContainsKey(k))
+                    retVal = RowNumDictionary[k];
+                RowNumDictionary[k] = retVal + 1;
+                return (retVal + 1).ToSQLiteValue();
+            };
+
+        public static Dictionary<string, int> RowNumDictionary;
+
+
         // XML specific functions
         public static Func<ISQLiteValue, ISQLiteValue> nonPosIntFunc =
             (ISQLiteValue val) =>

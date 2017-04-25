@@ -111,6 +111,7 @@ namespace ETLyteDLL
                                 .WithScalarFunc("DATECHK", SqliteExtensions.dateCompFunc)
                                 .WithScalarFunc("COMPARE", SqliteExtensions.compareFunc)
                                 .WithScalarFunc("UUID", SqliteExtensions.uuidFunc)
+                                .WithScalarFunc("ROW_NUMBER", SqliteExtensions.rowNumFunc)
                                 .Build();
                 }
                 return _dbcon;
@@ -167,7 +168,11 @@ namespace ETLyteDLL
 
         public int ExecuteQuery(string sql, IResultWriter sw, string context = "", Globals.ResultWriterDestination dest = Globals.ResultWriterDestination.stdOut)
         {
-            if (sql.Contains("JSON("))
+            if (sql.Contains("ROW_NUMBER("))
+            {
+                SqliteExtensions.RowNumDictionary = new Dictionary<string, int>();
+            }
+                if (sql.Contains("JSON("))
             {
                 var match = Regex.Match(sql, @"JSON\((?<key>.*?)\)");
                 sql = Regex.Replace(sql, @"JSON\(\w*\)", "", RegexOptions.IgnoreCase);
@@ -210,11 +215,12 @@ namespace ETLyteDLL
             return resp;
         }
 
-        private string makeInsert(string line, Flatfile flatfile, bool insertLineNum)
+        
+        private string GetInsertStmtForNormalCols(Flatfile flatfile, bool insertLineNum)
         {
             var sql = insertLineNum ? ", LineNum" : "";
             sql = string.Join(",",flatfile.Schemafile.Fields.Where(x => x.ColumnType == ColumnType.Normal).Select(x => x.Name).ToList()) + sql;
-            return "INSERT INTO " + flatfile.Tablename + " (" + sql + ") VALUES (" + line + ");";
+            return "INSERT INTO " + flatfile.Tablename + " (" + sql + ") VALUES ({0});";
         }
         
         private string CleanSql(string sql)
@@ -242,6 +248,7 @@ namespace ETLyteDLL
 
             try
             {
+                string insertStmt = GetInsertStmtForNormalCols(flatfile, insertLineNum);
                 sqliteStatus = raw.sqlite3_exec(RawDbConnection, "BEGIN");
                 //NPS_TODO : Get the column count of the table
                 // rc = sqlite3_prepare_v2(p->db, zSql, -1, &pStmt, 0) where zSQL is a select * from col
@@ -313,7 +320,7 @@ namespace ETLyteDLL
                             line = newLine.ToArray();
                         }
 
-                        string sql = makeInsert(String.Join(@",", SanitizeInputs(line)) + linenum, flatfile, insertLineNum);
+                        string sql = String.Format(insertStmt, String.Join(@",", SanitizeInputs(line)) + linenum);
                         sqliteStatus = raw.sqlite3_prepare_v2(RawDbConnection, sql, out stmt);
 
                         sqliteStatus = raw.sqlite3_step(stmt);

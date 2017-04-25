@@ -51,7 +51,7 @@ namespace ETLyteExe
 
         static string SetCurrentStep(string desc, IResultWriter writer)
         {
-            writer.WriteVerbose(desc);
+            writer.WriteVerbose("[" + DateTime.Now + "] " + desc);
             return desc;
         }
         public static int Run(ConfigFile c)
@@ -156,6 +156,7 @@ namespace ETLyteExe
                                 int linesRead = 0;
                                 SqliteStatus = db.ImportDelimitedFile(flatfile, out linesRead, configFile, true);
 
+                                currentStep = SetCurrentStep("Finished reading flatfile " + f + "...", Validate);
                                 var auditSql = "INSERT INTO FileAudit VALUES ('" + f + "', CURRENT_TIMESTAMP, " + schemaFile.Fields.Count + ", " + linesRead + ");";
                                 SqliteStatus = db.ExecuteQuery(auditSql, Validate);
                             }
@@ -195,7 +196,7 @@ namespace ETLyteExe
 
                         foreach (var schemaField in schemaFile.Fields)
                         {
-                            validator.ValidateFields(schemaField, schemaFile.Name);
+                            validator.ValidateFields(schemaField, schemaFile.Name, Validate);
                         }
 
                         if (schemaFile.SummarizeResults)
