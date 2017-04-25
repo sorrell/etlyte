@@ -5,9 +5,10 @@ category: ref
 date: 2017-04-24 23:18:36
 ---
 
-Installing ETLyte is as simple as cloning the repository or unzipping the
-archive.  There are, however, some prerequisites needed to run the program
-which vary by platform.
+Installing ETLyte is as simple as cloning the repository or
+[downloading](https://github.com/sorrell/etlyte/raw/master/ETLyte_Example.zip)
+and unzipping the archive.  There are, however, some prerequisites
+needed to run the program which vary by platform.
 
 ### Linux
 To run ETLyte on Linux, the Mono libraries are needed.  Install `mono-complete`
