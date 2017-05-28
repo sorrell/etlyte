@@ -82,6 +82,8 @@ namespace ETLyteExe
                 DirectoryInfo seedDirInfo = new DirectoryInfo(configFile.Extract.SeedData);
                 SchemaFile schemaFile = null;
                 SqliteModeler modeler = null;
+
+            #region Validate
                 Validate.BeginOutput("");
 
                 if (configFile.Steps.Extract)
@@ -214,12 +216,14 @@ namespace ETLyteExe
                 if (configFile.Steps.Validate && !string.IsNullOrWhiteSpace(configFile.Validate.ValidationSource))
                 {
                     Validate.BeginContext("Custom Data Validation Checks");
-
+                    
                     foreach (var validationFile in validationDirInfo.GetFiles("*.sql"))
                     {
                         currentStep = SetCurrentStep("Getting contents from: " + validationFile.Name, Validate);
                         validator.ValidateCustom(validationFile, configFile.Validate.ErrorLimit);
                     }
+                    Validate.EndContext();
+
                 }
                 if (configFile.Steps.Validate)
                 {
@@ -228,8 +232,8 @@ namespace ETLyteExe
                         validator.PrintGeneralIssues(Globals.ResultWriterDestination.Warning);
                 }
 
-                Validate.EndContext();
                 Validate.EndOutput("");
+            #endregion Validate
 
                 Load.BeginOutput("");
                 if (configFile.Steps.Load)

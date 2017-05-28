@@ -150,6 +150,8 @@ namespace ETLyteDLL
 
         public IResultWriter EndContext()
         {
+            stdOut.Flush();
+            VerboseOut.Flush();
             if (ContextStack.Count > 0)
                 CurrentContext = ContextStack.Pop();
             return this.DecreaseIndent();
@@ -206,6 +208,8 @@ namespace ETLyteDLL
 
         public IResultWriter EndOutput(string endStr = "")
         {
+            stdOut.Flush();
+            VerboseOut.Flush();
             return this;
         }
     }

@@ -179,12 +179,16 @@ namespace ETLyteDLL
             else
                 CurrentContext = new ResultContext(context, 1);
             stdOut.WriteLine(context.DoubleQuote() + ": {");
+            VerboseOut.WriteLine("Beginning context " + CurrentContext.Name);
             return this;
         }
 
         public IResultWriter EndContext()
         {
             stdOut.WriteLine("}");
+            VerboseOut.WriteLine("Ending context " + CurrentContext.Name);
+            stdOut.Flush();
+            VerboseOut.Flush();
             if (ContextStack.Count > 0)
                 CurrentContext = ContextStack.Pop();
             return this;
@@ -203,12 +207,16 @@ namespace ETLyteDLL
         public IResultWriter BeginOutput(string beginStr = "")
         {
             stdOut.WriteLine("{");
+            VerboseOut.WriteLine("Beginning output");
             return this;
         }
 
         public IResultWriter EndOutput(string endStr = "")
         {
             stdOut.WriteLine("}");
+            VerboseOut.WriteLine("Ending output");
+            stdOut.Flush();
+            VerboseOut.Flush();
             return this;
         }
         //public IResultWriter BeginSubsection(string beginText)
