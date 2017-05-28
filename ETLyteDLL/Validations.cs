@@ -123,14 +123,14 @@ namespace ETLyteDLL
 
             if (!double.IsNaN(schemaField.Maximum))
             {
-                sql = String.Format(sqlbase, "'Maximum Value'", esettings.MaximumErrorLevel.SingleQuote(), "WHERE COMPARE(" + schemaField.Name + @", '>', " + schemaField.Maximum + @", '" + schemaField.Type.ToString() + "');");
+                sql = String.Format(sqlbase, "'Maximum Value'", esettings.MaximumErrorLevel.SingleQuote(), "WHERE COMPARE(" + schemaField.Name + @", '>', " + schemaField.Maximum + @", '" + schemaField.DataType.ToString() + "');");
                 writer.WriteVerbose("[" + DateTime.Now + "] " + "Start Maximum Value check for " + schemaField.Name);
                 SqliteStatus = db.ExecuteQuery(sql, Validate);
                 writer.WriteVerbose("[" + DateTime.Now + "] " + "End Maximum Value check for " + schemaField.Name);
             }
             if (!double.IsNaN(schemaField.Minimum))
             {
-                sql = String.Format(sqlbase, "'Minimum Value'", esettings.MinimumErrorLevel.SingleQuote(), "WHERE COMPARE(" + schemaField.Name + @", '<', " + schemaField.Minimum + @", '" + schemaField.Type.ToString() + "');");
+                sql = String.Format(sqlbase, "'Minimum Value'", esettings.MinimumErrorLevel.SingleQuote(), "WHERE COMPARE(" + schemaField.Name + @", '<', " + schemaField.Minimum + @", '" + schemaField.DataType.ToString() + "');");
                 writer.WriteVerbose("[" + DateTime.Now + "] " + "Start Minimum Value check for " + schemaField.Name);
                 SqliteStatus = db.ExecuteQuery(sql, Validate);
                 writer.WriteVerbose("[" + DateTime.Now + "] " + "End Minimum Value check for " + schemaField.Name);
