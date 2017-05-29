@@ -212,6 +212,8 @@ namespace ETLyteDLL
                         else if (op == ">=") { parsed = (dbval >= compval); }
                         else if (op == "<") { parsed = (dbval < compval); }
                         else if (op == "<=") { parsed = (dbval <= compval); }
+                        else if (op == "=") { parsed = (dbval == compval); }
+                        else if (op == "<>") { parsed = (dbval != compval); }
                     }
                 }
 
