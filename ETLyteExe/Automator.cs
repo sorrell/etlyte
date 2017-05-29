@@ -59,9 +59,9 @@ namespace ETLyteExe
             configFile = c;
             try
             {
-                IResultWriter Validate = new PlainTextResultWriter(Console.Out, Console.Out, Console.Out, Console.Out);
-                IResultWriter Transform = new PlainTextResultWriter(Console.Out, Console.Out, Console.Out, Console.Out);
-                IResultWriter Load = new PlainTextResultWriter(Console.Out, Console.Out, Console.Out, Console.Out);
+                Validate = new PlainTextResultWriter(Console.Out, Console.Out, Console.Out, Console.Out);
+                Transform = new PlainTextResultWriter(Console.Out, Console.Out, Console.Out, Console.Out);
+                Load = new PlainTextResultWriter(Console.Out, Console.Out, Console.Out, Console.Out);
                 Validations validator = null;
                 SqliteStatus = 0;
                 string sql;
@@ -83,7 +83,7 @@ namespace ETLyteExe
                 SchemaFile schemaFile = null;
                 SqliteModeler modeler = null;
 
-            #region Validate
+            
                 Validate.BeginOutput("");
 
                 if (configFile.Steps.Extract)
@@ -94,11 +94,14 @@ namespace ETLyteExe
                     Validate.WriteVerbose(SqliteStatus.ToString() + ":" + sql + "||" + db.LastError);
 
                     // load seed data
-                    foreach (var seedFile in seedDirInfo.GetFiles("*.sql"))
+                    if (seedDirInfo.Exists)
                     {
-                        //NPS_TODO: Add check to see if we need to do this on reuse db
-                        currentStep = SetCurrentStep("Reading seed data from " + seedFile.Name, Validate);
-                        SqliteStatus = db.ExecuteQuery(File.ReadAllText(seedFile.FullName), Validate);
+                        foreach (var seedFile in seedDirInfo.GetFiles("*.sql"))
+                        {
+                            //NPS_TODO: Add check to see if we need to do this on reuse db
+                            currentStep = SetCurrentStep("Reading seed data from " + seedFile.Name, Validate);
+                            SqliteStatus = db.ExecuteQuery(File.ReadAllText(seedFile.FullName), Validate);
+                        }
                     }
 
                 }
@@ -189,6 +192,8 @@ namespace ETLyteExe
                             }
                         }
                     }
+
+                #region Validate
 
                     // file level validations
                     if (configFile.Steps.Validate)
