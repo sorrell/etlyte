@@ -362,6 +362,9 @@ namespace ETLyteDLL
                 case "<>":
                     comp = lhs.CompareTo(rhs) != 0;
                     break;
+                case "=":
+                    comp = lhs.CompareTo(rhs) == 0;
+                    break;
                 default:
                     break;
             }
