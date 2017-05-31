@@ -216,13 +216,26 @@ namespace ETLyteDLL
         }
 
         
-        private string GetInsertStmtForNormalCols(Flatfile flatfile, bool insertLineNum)
+        private string GetInsertFmtForNormalCols(Flatfile flatfile, bool insertLineNum)
         {
             var sql = insertLineNum ? ", LineNum" : "";
             sql = string.Join(",",flatfile.Schemafile.Fields.Where(x => x.ColumnType == ColumnType.Normal).Select(x => x.Name).ToList()) + sql;
             return "INSERT INTO " + flatfile.Tablename + " (" + sql + ") VALUES ({0});";
         }
-        
+        private string GetInsertStmtForNormalCols(Flatfile flatfile, bool insertLineNum)
+        {
+            var sql = insertLineNum ? ", LineNum" : "";
+            var lncnt = insertLineNum ? 1 : 0;
+            var qmark = "";
+            var colList = flatfile.Schemafile.Fields.Where(x => x.ColumnType == ColumnType.Normal).Select(x => x.Name).ToList();
+            sql = string.Join(",", colList) + sql;
+            for (int i = 1; i <= colList.Count+lncnt; i++)
+            {
+                qmark += "?" + i.ToString() + ",";
+            }
+            return "INSERT INTO " + flatfile.Tablename + " (" + sql + ") VALUES (" + qmark.Substring(0, qmark.Length-1) + ")";
+        }
+
         private string CleanSql(string sql)
         {
             sql = sql.Trim();
@@ -249,14 +262,15 @@ namespace ETLyteDLL
             try
             {
                 string insertStmt = GetInsertStmtForNormalCols(flatfile, insertLineNum);
-                sqliteStatus = raw.sqlite3_exec(RawDbConnection, "BEGIN");
+                raw.sqlite3_exec(RawDbConnection, "BEGIN");
                 //NPS_TODO : Get the column count of the table
                 // rc = sqlite3_prepare_v2(p->db, zSql, -1, &pStmt, 0) where zSQL is a select * from col
                 // if no rc, then create table
                 // then 
                 // nCol = sqlite3_column_count(pStmt);
                 sqlite3_stmt stmt;
-
+                bool skipRows = flatfile.Schemafile.SkipRows != 0;
+                sqliteStatus = raw.sqlite3_prepare_v2(RawDbConnection, insertStmt, out stmt);
                 using (StreamReader reader = File.OpenText(flatfile.Filename))
                 {
                     var parser = new CsvParser(reader);
@@ -264,27 +278,24 @@ namespace ETLyteDLL
 
                     while (true)
                     {
+                        //Console.WriteLine("1- "+DateTime.Now.Ticks);
                         var line = parser.Read();
                         if (line == null)
                         {
                             break;
                         }
-
-                        if (i - 1 < flatfile.Schemafile.SkipRows)
+                        //Console.WriteLine("2- " + DateTime.Now.Ticks);
+                        if (skipRows && i - 1 < flatfile.Schemafile.SkipRows)
                         {
                             i++;
                             continue;
                         }
+                        //Console.WriteLine("3- " + DateTime.Now.Ticks);
+  
+                     
 
-                        if ((i % 100000) == 0)
-                        {
-                            sqliteStatus = raw.sqlite3_exec(RawDbConnection, "COMMIT");
-                            sqliteStatus = raw.sqlite3_exec(RawDbConnection, "BEGIN");
-                        }
-
-                        
                         int columnCount = flatfile.Schemafile.Fields.Count - 1;
-                        if ((i == 1 || (i - 1) == flatfile.Schemafile.SkipRows) && flatfile.HasHeaderRow)
+                        if ((i == 1 || (skipRows && (i - 1) == flatfile.Schemafile.SkipRows)) && flatfile.HasHeaderRow)
                         {
                             flatfile.Headers = line;
                             if (flatfile.HasValidHeaderCount())
@@ -296,7 +307,7 @@ namespace ETLyteDLL
                             i++;
                             continue;
                         }
-
+                        //Console.WriteLine("5- " + DateTime.Now.Ticks);
                         var linenum = insertLineNum ? "," + parser.Row : "";
                         List<string> newLine = new List<string>();
 
@@ -307,7 +318,7 @@ namespace ETLyteDLL
                                 newLine.Add(line[num]);
                             line = newLine.ToArray();
                         }
-
+                        //Console.WriteLine("6- " + DateTime.Now.Ticks);
                         if ((line.Where(x => x == null).Count() > 0) && configFile.Extract.MissingColumns.MissingColumnHandling.ToLower() == "fill")
                         {
                             newLine = line.Where(col => col != null).ToList();
@@ -319,30 +330,39 @@ namespace ETLyteDLL
 
                             line = newLine.ToArray();
                         }
-
-                        string sql = String.Format(insertStmt, String.Join(@",", SanitizeInputs(line)) + linenum);
-                        sqliteStatus = raw.sqlite3_prepare_v2(RawDbConnection, sql, out stmt);
-
-                        sqliteStatus = raw.sqlite3_step(stmt);
-
+                        //Console.WriteLine("7- " + DateTime.Now.Ticks);
+                        raw.sqlite3_reset(stmt);
+                        string sql = "";
+                        //string sql = String.Format(insertStmt, String.Join(@",", SanitizeInputs(line)) + linenum) + Environment.NewLine;
+                       
+                        for (int k = 1; k <= line.Length; k++)
+                        {
+                            sqliteStatus = raw.sqlite3_bind_text(stmt, k, line[k - 1]);
+                        }
+                        if (linenum != "") { sqliteStatus = raw.sqlite3_bind_text(stmt, line.Length + 1, i.ToString()); }
+                        //Console.WriteLine("8- " + DateTime.Now.Ticks);
+                        //sqliteStatus = raw.sqlite3_exec(RawDbConnection, sql);
+                        raw.sqlite3_step(stmt);
+                        raw.sqlite3_clear_bindings(stmt);
+                        //Console.WriteLine("9- " + DateTime.Now.Ticks);
                         // This next line really implies that MissingColumnHandling = error
-                        if ((sqliteStatus != raw.SQLITE_OK && sqliteStatus != raw.SQLITE_DONE) || (raw.sqlite3_finalize(stmt) != raw.SQLITE_OK))
+                        if ((sqliteStatus != raw.SQLITE_OK && sqliteStatus != raw.SQLITE_DONE))
                         {
                             string error = raw.sqlite3_errmsg(RawDbConnection);
                             sqliteStatus = raw.sqlite3_exec(RawDbConnection, "INSERT INTO GeneralErrors VALUES('Insert Error', 'None','" + flatfile.Tablename.ToUpper() + "', 'Error','Failed to import lines in " + flatfile.Filename +
                                                                 " due to error: " + error + Environment.NewLine + "Line: " + i + ": " + sql.Replace("'", "''") + "')");
                             if (configFile.Db.StopOnError)
                             {
-                                sqliteStatus = raw.sqlite3_exec(RawDbConnection, "COMMIT");
+                                raw.sqlite3_finalize(stmt);
+                                raw.sqlite3_exec(RawDbConnection, "COMMIT");
                                 break;
                             }
                         }
-                        //sqliteStatus = raw.sqlite3_reset(stmt);
-
-                        stmt.Dispose();
+                    
                         i++;
                     }
                 }
+                raw.sqlite3_finalize(stmt);
                 raw.sqlite3_exec(RawDbConnection, "COMMIT");
                 linesRead = i;
                 return (int)ErrorCode.Ok;
