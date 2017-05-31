@@ -177,24 +177,28 @@ namespace ETLyteDLL
                                 .Where(t => (t.Item1.ToString().ToLower() == sqliteDatatype.ToLower()))
                                 .Select(t => t).ElementAt(0);
                             var etlDatatype = tuple.Item1;
-                            mssqlDatatype = tuple.Item2;
+                            mssqlDatatype = (tuple.Item2 != null) ? tuple.Item2 : "varchar(max)";
                             isQuoted = (tuple.Item3.ToLower() == "quoted");
                             if (etlDatatype == DataType.@decimal || etlDatatype == DataType.@double || etlDatatype == DataType.@float)
                             {
                                 string precscale = "18";
                                 var precisionSql = "with cte as (" +
-                                                        "select length(" + colname + ")-1 as precision, length(" + colname + ") - instr(" + colname + ", '.') as scale " +
+                                                        "select distinct length(" + colname + ")-1 as precision, length(" + colname + ") - instr(" + colname + ", '.') as scale, " +
+                                                        "length(" + colname + ")-1 - (length(" + colname + ") - instr(" + colname + ", '.')) as beforeDec " +
                                                         "from " + r.ColumnInfo.TableName +
                                                     ") " +
-                                                   "select case when max(precision) - min(scale) >= 38 then 38 " +
-                                                                "else max(precision) " +
+                                                   "select case when max(precision)+max(beforeDec)-1 - min(scale) >= 38 then 38 " +
+                                                                "else max(precision)+max(beforeDec)-1 " +
                                                            "end as precision, max(scale) as scale " +
                                                    "from cte;";
                                 enumerator = SqliteDb.GetEnumeratorForQuery(precisionSql);
                                 if (enumerator.MoveNext())
                                 {
-                                    var prec = string.IsNullOrWhiteSpace(enumerator.Current[0].ToString()) ? "18," : enumerator.Current[0].ToString() + ",";
-                                    var scale = string.IsNullOrWhiteSpace(enumerator.Current[1].ToString()) ? "0" : enumerator.Current[1].ToString();
+                                    int precnum, scalenum = 0;
+                                    int.TryParse(enumerator.Current[0].ToString(), out precnum);
+                                    int.TryParse(enumerator.Current[1].ToString(), out scalenum);
+                                    var prec = (string.IsNullOrWhiteSpace(enumerator.Current[0].ToString()) || precnum <= 0) ? "18," : enumerator.Current[0].ToString() + ",";
+                                    var scale = (string.IsNullOrWhiteSpace(enumerator.Current[1].ToString()) || scalenum <= 0) ? "2" : enumerator.Current[1].ToString();
                                     precscale = prec + scale;
                                 }
                                 mssqlDatatype = string.Format(mssqlDatatype, precscale);
@@ -203,6 +207,11 @@ namespace ETLyteDLL
                             {
                                 mssqlDatatype = string.Format(mssqlDatatype, colname);
                             }
+                        }
+                        else
+                        {
+                            mssqlDatatype = string.Format("varchar(max)", colname);
+                            isQuoted = true;
                         }
                     }
                     else
@@ -215,6 +224,7 @@ namespace ETLyteDLL
                     ContextColumnIsQuoted.Add(r.ColumnInfo.TableName + "_" + colname, isQuoted);
                 }
                 sql = string.Format(sql, string.Join(",", cols));
+                Console.WriteLine(sql);
                 Write(sql, dest);
                 TableIsCreated = true;
             }

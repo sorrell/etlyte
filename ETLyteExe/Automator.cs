@@ -160,6 +160,7 @@ namespace ETLyteExe
                                 flatfile = new Flatfile(f, schemaFile.Name, schemaFile.Delimiter.ToString(), "\"", true, null, schemaFile);
                                 int linesRead = 0;
                                 SqliteStatus = db.ImportDelimitedFile(flatfile, out linesRead, configFile, true);
+                                // NPS_TODO: Make linenum optional in configfile
 
                                 currentStep = SetCurrentStep("Finished reading flatfile " + f + "...", Validate);
                                 var auditSql = "INSERT INTO FileAudit VALUES ('" + f + "', CURRENT_TIMESTAMP, " + schemaFile.Fields.Count + ", " + linesRead + ");";
@@ -175,6 +176,7 @@ namespace ETLyteExe
                         }
                         else
                         {
+                            var metadataSql = "";
                             // NPS_TODO: Handle Derivations flag
                             // DERIVATIONS
                             foreach (var schemaField in flatfile.Schemafile.Fields.Where(x => x.ColumnType == ColumnType.Derived).Select(x => x))
@@ -184,12 +186,14 @@ namespace ETLyteExe
                             }
                             foreach (var schemaField in schemaFile.Fields)
                             {
-                                var metadataSql = "INSERT INTO TableMetadata VALUES ('" + schemaFile.Name + "', '" + schemaField.Name + "', '" + schemaField.DataType + "');";
+                                metadataSql = "INSERT INTO TableMetadata VALUES ('" + schemaFile.Name + "', '" + schemaField.Name + "', '" + schemaField.DataType + "');";
                                 // finding numeric precision/scale for sql server
                                 // with cte as (select length(b)-1 as precision, length(b) - instr(b, '.') as scale from foo) select case when
                                 // max(precision) - min(scale) >= 38 then 38 else max(precision) end as precision, max(scale) from cte; 
                                 SqliteStatus = db.ExecuteQuery(metadataSql, Validate);
                             }
+                            metadataSql = "INSERT INTO TableMetadata VALUES ('" + schemaFile.Name + "', 'LineNum', 'int');";
+                            SqliteStatus = db.ExecuteQuery(metadataSql, Validate);
                         }
                     }
 
