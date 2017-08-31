@@ -36,8 +36,8 @@
       <HintPath>..\packages\CommandLineParser.2.0.275-beta\lib\net45\CommandLine.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="InteractivePrompt, Version=1.0.3.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\InteractivePrompt.1.0.3\lib\net40\InteractivePrompt.dll</HintPath>
+    <Reference Include="InteractivePrompt, Version=1.0.5.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\InteractivePrompt.1.0.5\lib\net40\InteractivePrompt.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Mono.CSharp, Version=4.0.0.0, Culture=neutral, PublicKeyToken=0738eb9f132ed756, processorArchitecture=MSIL">

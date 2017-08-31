@@ -50,7 +50,7 @@ namespace ETLyteDLL
                     sql = String.Format(sqlbase, "'Invalid Datatype'", errorLevel, "WHERE NOT ISCHAR(" + schemaField.Name + ")");
                     break;
                 case DataType.DateTime:                                
-                    sql = String.Format(sqlbase, "'Invalid Datatype'", errorLevel, "WHERE NOT ISDATETIME(" + schemaField.Name + ", '" + schemaField.DatePattern + "') ");
+                    sql = String.Format(sqlbase, "'Invalid Datatype'", errorLevel, "WHERE NOT ISDATETIME(" + schemaField.Name + ", '" + schemaField.Constraints.DatePattern + "') ");
                     break;
                 case DataType.@decimal:
                     sql = String.Format(sqlbase, "'Invalid Datatype'", errorLevel, "WHERE NOT ISDECIMAL(" + schemaField.Name + ")");
@@ -104,7 +104,7 @@ namespace ETLyteDLL
                              {2}";
             string sql = "";
 
-            if (schemaField.Required)
+            if (schemaField.Constraints.Required)
             {
                 sql = String.Format(sqlbase, "'Required Field'", esettings.RequiredErrorLevel.SingleQuote(), " WHERE " + schemaField.Name + " = '' OR " + schemaField.Name + " IS NULL");
                 writer.WriteVerbose("[" + DateTime.Now + "] " + "Start Required Field check for " + schemaField.Name);
@@ -113,7 +113,7 @@ namespace ETLyteDLL
             }
 
             if (schemaField.DataType != DataType.@string
-                && (schemaField.Required || (esettings.ErrorOnUnrequiredWithBadDatatype && !schemaField.Required)))
+                && (schemaField.Constraints.Required || (esettings.ErrorOnUnrequiredWithBadDatatype && !schemaField.Constraints.Required)))
             {
                 sql = GetSqlForDatatype(schemaField, sqlbase, esettings.DatatypeErrorLevel.SingleQuote());
                 writer.WriteVerbose("[" + DateTime.Now + "] " + "Start Datatype check for " + schemaField.Name);
@@ -121,42 +121,42 @@ namespace ETLyteDLL
                 writer.WriteVerbose("[" + DateTime.Now + "] " + "End Datatype check for " + schemaField.Name);
             }
 
-            if (!double.IsNaN(schemaField.Maximum))
+            if (!double.IsNaN(schemaField.Constraints.Maximum))
             {
-                sql = String.Format(sqlbase, "'Maximum Value'", esettings.MaximumErrorLevel.SingleQuote(), "WHERE COMPARE(" + schemaField.Name + @", '>', " + schemaField.Maximum + @", '" + schemaField.DataType.ToString() + "');");
+                sql = String.Format(sqlbase, "'Maximum Value'", esettings.MaximumErrorLevel.SingleQuote(), "WHERE COMPARE(" + schemaField.Name + @", '>', " + schemaField.Constraints.Maximum + @", '" + schemaField.DataType.ToString() + "');");
                 writer.WriteVerbose("[" + DateTime.Now + "] " + "Start Maximum Value check for " + schemaField.Name);
                 SqliteStatus = db.ExecuteQuery(sql, Validate);
                 writer.WriteVerbose("[" + DateTime.Now + "] " + "End Maximum Value check for " + schemaField.Name);
             }
-            if (!double.IsNaN(schemaField.Minimum))
+            if (!double.IsNaN(schemaField.Constraints.Minimum))
             {
-                sql = String.Format(sqlbase, "'Minimum Value'", esettings.MinimumErrorLevel.SingleQuote(), "WHERE COMPARE(" + schemaField.Name + @", '<', " + schemaField.Minimum + @", '" + schemaField.DataType.ToString() + "');");
+                sql = String.Format(sqlbase, "'Minimum Value'", esettings.MinimumErrorLevel.SingleQuote(), "WHERE COMPARE(" + schemaField.Name + @", '<', " + schemaField.Constraints.Minimum + @", '" + schemaField.DataType.ToString() + "');");
                 writer.WriteVerbose("[" + DateTime.Now + "] " + "Start Minimum Value check for " + schemaField.Name);
                 SqliteStatus = db.ExecuteQuery(sql, Validate);
                 writer.WriteVerbose("[" + DateTime.Now + "] " + "End Minimum Value check for " + schemaField.Name);
             }
-            if (schemaField.MinLength > -1)
+            if (schemaField.Constraints.MinLength > -1)
             {
-                sql = String.Format(sqlbase, "'Minimum Length'", esettings.MinLengthErrorLevel.SingleQuote(), "WHERE LENGTH(" + schemaField.Name + @") < " + schemaField.MinLength + @";");
+                sql = String.Format(sqlbase, "'Minimum Length'", esettings.MinLengthErrorLevel.SingleQuote(), "WHERE LENGTH(" + schemaField.Name + @") < " + schemaField.Constraints.MinLength + @";");
                 writer.WriteVerbose("[" + DateTime.Now + "] " + "Start Minimum Length check for " + schemaField.Name);
                 SqliteStatus = db.ExecuteQuery(sql, Validate);
                 writer.WriteVerbose("[" + DateTime.Now + "] " + "End Minimum Length check for " + schemaField.Name);
             }
-            if (schemaField.MaxLength > -1)
+            if (schemaField.Constraints.MaxLength > -1)
             {
-                sql = String.Format(sqlbase, "'Maximum Length'", esettings.MaxLengthErrorLevel.SingleQuote(), "WHERE LENGTH(" + schemaField.Name + @") > " + schemaField.MaxLength + @";");
+                sql = String.Format(sqlbase, "'Maximum Length'", esettings.MaxLengthErrorLevel.SingleQuote(), "WHERE LENGTH(" + schemaField.Name + @") > " + schemaField.Constraints.MaxLength + @";");
                 writer.WriteVerbose("[" + DateTime.Now + "] " + "Start Maximum Length check for " + schemaField.Name);
                 SqliteStatus = db.ExecuteQuery(sql, Validate);
                 writer.WriteVerbose("[" + DateTime.Now + "] " + "End Maximum Length check for " + schemaField.Name);
             }
-            if ((schemaField.Pattern != null) && (schemaField.Pattern != String.Empty))
+            if ((schemaField.Constraints.Pattern != null) && (schemaField.Constraints.Pattern != String.Empty))
             {
-                sql = String.Format(sqlbase, "'Invalid Value(pattern)'", esettings.PatternErrorLevel.SingleQuote(), "WHERE '" + schemaField.Pattern + @"' NOT REGEXP " + schemaField.Name + @";");
+                sql = String.Format(sqlbase, "'Invalid Value(pattern)'", esettings.PatternErrorLevel.SingleQuote(), "WHERE '" + schemaField.Constraints.Pattern + @"' NOT REGEXP " + schemaField.Name + @";");
                 writer.WriteVerbose("[" + DateTime.Now + "] " + "Start Pattern check for " + schemaField.Name);
                 SqliteStatus = db.ExecuteQuery(sql, Validate);
                 writer.WriteVerbose("[" + DateTime.Now + "] " + "End Pattern check for " + schemaField.Name);
             }
-            if (schemaField.Unique)
+            if (schemaField.Constraints.Unique)
             {
                 // Unique speed hack
                 sql = @"INSERT INTO " + tableName + "_Errors" +

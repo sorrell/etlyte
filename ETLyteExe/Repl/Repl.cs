@@ -30,8 +30,13 @@ namespace ETLyteExe
             string prompt = "ETLyte> ";
             CSharpEvaluator eval = new CSharpEvaluator();
             InteractivePrompt.Run(
-                ((cmd, rawinput) =>
+                ((cmd, rawinput, completions) =>
                 {
+                    // add new completions
+                    foreach (var c in cmd.Split(' '))
+                        if (!completions.Contains(c))
+                            completions.Add(c);
+
                     string retstr = "";
                     var arg = cmd.Split(' ');
                     var firstArg = arg[0];

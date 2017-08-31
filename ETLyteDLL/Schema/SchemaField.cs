@@ -11,25 +11,15 @@ namespace ETLyteDLL
     {
         private DataType datatype;
         private Type type = typeof(string);
-
+        
         public SchemaField(string name)
         {
             Name = name;
-            Minimum = Double.NaN;
-            MinLength = -1;
-            Maximum = Double.NaN;
-            MaxLength = -1;
-            DatePattern = "yyyyMMdd";
             ColumnType = ColumnType.Normal;
         }
         public string Name { get; set; }
-        public bool Required { get; set; }
-        public bool Unique { get; set; }
-        public int MinLength { get; set; }
-        public int MaxLength { get; set; }
-        public string Pattern { get; set; }
-        public string DatePattern { get; set; }
-        public string UriType { get; set; }
+        public Constraints Constraints = new Constraints();
+        
         public ColumnType ColumnType { get; set; }
         public string Derivation { get; set; }
         public Type Type { get { return type; } set { type = value; } }
@@ -98,8 +88,7 @@ namespace ETLyteDLL
                 }
             }
         }
-        public double Minimum { get; set; }
-        public double Maximum { get; set; }
+
     }
 
     public enum ColumnType
