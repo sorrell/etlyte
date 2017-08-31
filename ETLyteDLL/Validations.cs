@@ -156,6 +156,14 @@ namespace ETLyteDLL
                 SqliteStatus = db.ExecuteQuery(sql, Validate);
                 writer.WriteVerbose("[" + DateTime.Now + "] " + "End Pattern check for " + schemaField.Name);
             }
+            if (schemaField.Constraints.Enum != null && schemaField.Constraints.Enum.Length > 0)
+            {
+                var values = "(" + String.Join(",", schemaField.Constraints.Enum.ToList().Select(x => "'" + x + "'")) + ")";
+                sql = String.Format(sqlbase, "'Enum Valid Values'", esettings.MaxLengthErrorLevel.SingleQuote(), "WHERE " + schemaField.Name + @" NOT IN " + values + @";");
+                writer.WriteVerbose("[" + DateTime.Now + "] " + "Start Enum Valid Values check for " + schemaField.Name);
+                SqliteStatus = db.ExecuteQuery(sql, Validate);
+                writer.WriteVerbose("[" + DateTime.Now + "] " + "End Enum Valid Values check for " + schemaField.Name);
+            }
             if (schemaField.Constraints.Unique)
             {
                 // Unique speed hack

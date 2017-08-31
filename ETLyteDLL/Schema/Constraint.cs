@@ -25,5 +25,7 @@ namespace ETLyteDLL
         public string Pattern { get; set; }
         public string DatePattern { get; set; }
         public string UriType { get; set; }
+
+        public string[] Enum { get; set; }
     }
 }
