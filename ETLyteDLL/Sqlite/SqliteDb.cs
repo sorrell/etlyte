@@ -174,7 +174,8 @@ namespace ETLyteDLL
         }
 
         public int ExecuteQuery(string sql, IResultWriter sw, Action<Int64> setResults, string context = "", Globals.ResultWriterDestination dest = Globals.ResultWriterDestination.stdOut)
-        { 
+        {
+            Int64 numResults = 0;
             if (sql.Contains("ROW_NUMBER("))
             {
                 SqliteExtensions.RowNumDictionary = new Dictionary<string, int>();
@@ -203,6 +204,7 @@ namespace ETLyteDLL
 	                    // Write the rest...
 	                    while (stmt.MoveNext())
 	                    {
+                            numResults++;
 	                        sw.WriteResult(stmt.Current, dest);
 	                    }
                         sw.EndContext();
@@ -217,7 +219,11 @@ namespace ETLyteDLL
             finally
             {
                 sw.Flush();
-                setResults(DbConnection.Changes);
+                Int64 changes = DbConnection.Changes;
+                // if we didn't make any db changes, then we performed a query, so let's return the number of results in that query
+                if (changes == 0 && numResults != 0)
+                    changes = numResults;
+                setResults(changes);
             }
 
             return resp;
