@@ -23,16 +23,33 @@ namespace ETLyteDLL
             }
         }
 
+        private Int64 errorCount = 0;
+        private void ErrorCount(Int64 val)
+        {
+            errorCount += val;
+            if (errorCount >= vOptions.FileErrorLimit)
+            {
+                PrintSummaryResults(currentTable);
+                PrintDetailResults(currentTable, "Error");
+                Validate.Write(Environment.NewLine + "---------------" + Environment.NewLine + "Error limit reached: " + errorCount + " errors detected " + vOptions.FileErrorLimit, Globals.ResultWriterDestination.stdOut);
+                SqliteStatusCallback(666);
+            }
+        }
+
+        private string currentTable;
         private SchemaErrorSettings esettings;
         private SqliteDb db;
         private IResultWriter Validate;
+        private ValidateOptions vOptions;
 
-        public Validations(SchemaErrorSettings inesettings, SqliteDb indb, IResultWriter inValidate, Func<int, int> cb)
+        public Validations(SchemaErrorSettings inesettings, SqliteDb indb, IResultWriter inValidate, Func<int, int> cb, ValidateOptions validateOptions, string curTable)
         {
             SqliteStatusCallback = cb;
             esettings = inesettings;
             db = indb;
             Validate = inValidate;
+            vOptions = validateOptions;
+            currentTable = curTable;
         }
 
         public string GetSqlForDatatype(SchemaField schemaField, string sqlbase, string errorLevel)
@@ -101,14 +118,14 @@ namespace ETLyteDLL
             var sqlbase = @"INSERT INTO " + tableName + "_Errors" +
                           @" SELECT {0}, '" + schemaField.Name + @"', {1},*
                              FROM " + tableName + @" 
-                             {2}";
+                             {2} LIMIT " + vOptions.QueryErrorLimit + ";";
             string sql = "";
-
+            
             if (schemaField.Constraints.Required)
             {
                 sql = String.Format(sqlbase, "'Required Field'", esettings.RequiredErrorLevel.SingleQuote(), " WHERE " + schemaField.Name + " = '' OR " + schemaField.Name + " IS NULL");
                 writer.WriteVerbose("[" + DateTime.Now + "] " + "Start Required Field check for " + schemaField.Name);
-                SqliteStatus = db.ExecuteQuery(sql, Validate);
+                SqliteStatus = db.ExecuteQuery(sql, Validate, ErrorCount);
                 writer.WriteVerbose("[" + DateTime.Now + "] " + "End Required Field check for " + schemaField.Name);
             }
 
@@ -117,51 +134,51 @@ namespace ETLyteDLL
             {
                 sql = GetSqlForDatatype(schemaField, sqlbase, esettings.DatatypeErrorLevel.SingleQuote());
                 writer.WriteVerbose("[" + DateTime.Now + "] " + "Start Datatype check for " + schemaField.Name);
-                SqliteStatus = db.ExecuteQuery(sql, Validate);
+                SqliteStatus = db.ExecuteQuery(sql, Validate, ErrorCount);
                 writer.WriteVerbose("[" + DateTime.Now + "] " + "End Datatype check for " + schemaField.Name);
             }
 
             if (!double.IsNaN(schemaField.Constraints.Maximum))
             {
-                sql = String.Format(sqlbase, "'Maximum Value'", esettings.MaximumErrorLevel.SingleQuote(), "WHERE COMPARE(" + schemaField.Name + @", '>', " + schemaField.Constraints.Maximum + @", '" + schemaField.DataType.ToString() + "');");
+                sql = String.Format(sqlbase, "'Maximum Value'", esettings.MaximumErrorLevel.SingleQuote(), "WHERE COMPARE(" + schemaField.Name + @", '>', " + schemaField.Constraints.Maximum + @", '" + schemaField.DataType.ToString() + "')");
                 writer.WriteVerbose("[" + DateTime.Now + "] " + "Start Maximum Value check for " + schemaField.Name);
-                SqliteStatus = db.ExecuteQuery(sql, Validate);
+                SqliteStatus = db.ExecuteQuery(sql, Validate, ErrorCount);
                 writer.WriteVerbose("[" + DateTime.Now + "] " + "End Maximum Value check for " + schemaField.Name);
             }
             if (!double.IsNaN(schemaField.Constraints.Minimum))
             {
-                sql = String.Format(sqlbase, "'Minimum Value'", esettings.MinimumErrorLevel.SingleQuote(), "WHERE COMPARE(" + schemaField.Name + @", '<', " + schemaField.Constraints.Minimum + @", '" + schemaField.DataType.ToString() + "');");
+                sql = String.Format(sqlbase, "'Minimum Value'", esettings.MinimumErrorLevel.SingleQuote(), "WHERE COMPARE(" + schemaField.Name + @", '<', " + schemaField.Constraints.Minimum + @", '" + schemaField.DataType.ToString() + "')");
                 writer.WriteVerbose("[" + DateTime.Now + "] " + "Start Minimum Value check for " + schemaField.Name);
-                SqliteStatus = db.ExecuteQuery(sql, Validate);
+                SqliteStatus = db.ExecuteQuery(sql, Validate, ErrorCount);
                 writer.WriteVerbose("[" + DateTime.Now + "] " + "End Minimum Value check for " + schemaField.Name);
             }
             if (schemaField.Constraints.MinLength > -1)
             {
-                sql = String.Format(sqlbase, "'Minimum Length'", esettings.MinLengthErrorLevel.SingleQuote(), "WHERE LENGTH(" + schemaField.Name + @") < " + schemaField.Constraints.MinLength + @";");
+                sql = String.Format(sqlbase, "'Minimum Length'", esettings.MinLengthErrorLevel.SingleQuote(), "WHERE LENGTH(" + schemaField.Name + @") < " + schemaField.Constraints.MinLength);
                 writer.WriteVerbose("[" + DateTime.Now + "] " + "Start Minimum Length check for " + schemaField.Name);
-                SqliteStatus = db.ExecuteQuery(sql, Validate);
+                SqliteStatus = db.ExecuteQuery(sql, Validate, ErrorCount);
                 writer.WriteVerbose("[" + DateTime.Now + "] " + "End Minimum Length check for " + schemaField.Name);
             }
             if (schemaField.Constraints.MaxLength > -1)
             {
-                sql = String.Format(sqlbase, "'Maximum Length'", esettings.MaxLengthErrorLevel.SingleQuote(), "WHERE LENGTH(" + schemaField.Name + @") > " + schemaField.Constraints.MaxLength + @";");
+                sql = String.Format(sqlbase, "'Maximum Length'", esettings.MaxLengthErrorLevel.SingleQuote(), "WHERE LENGTH(" + schemaField.Name + @") > " + schemaField.Constraints.MaxLength);
                 writer.WriteVerbose("[" + DateTime.Now + "] " + "Start Maximum Length check for " + schemaField.Name);
-                SqliteStatus = db.ExecuteQuery(sql, Validate);
+                SqliteStatus = db.ExecuteQuery(sql, Validate, ErrorCount);
                 writer.WriteVerbose("[" + DateTime.Now + "] " + "End Maximum Length check for " + schemaField.Name);
             }
             if ((schemaField.Constraints.Pattern != null) && (schemaField.Constraints.Pattern != String.Empty))
             {
-                sql = String.Format(sqlbase, "'Invalid Value(pattern)'", esettings.PatternErrorLevel.SingleQuote(), "WHERE '" + schemaField.Constraints.Pattern + @"' NOT REGEXP " + schemaField.Name + @";");
+                sql = String.Format(sqlbase, "'Invalid Value(pattern)'", esettings.PatternErrorLevel.SingleQuote(), "WHERE '" + schemaField.Constraints.Pattern + @"' NOT REGEXP " + schemaField.Name);
                 writer.WriteVerbose("[" + DateTime.Now + "] " + "Start Pattern check for " + schemaField.Name);
-                SqliteStatus = db.ExecuteQuery(sql, Validate);
+                SqliteStatus = db.ExecuteQuery(sql, Validate, ErrorCount);
                 writer.WriteVerbose("[" + DateTime.Now + "] " + "End Pattern check for " + schemaField.Name);
             }
             if (schemaField.Constraints.Enum != null && schemaField.Constraints.Enum.Length > 0)
             {
                 var values = "(" + String.Join(",", schemaField.Constraints.Enum.ToList().Select(x => "'" + x + "'")) + ")";
-                sql = String.Format(sqlbase, "'Enum Valid Values'", esettings.MaxLengthErrorLevel.SingleQuote(), "WHERE " + schemaField.Name + @" NOT IN " + values + @";");
+                sql = String.Format(sqlbase, "'Enum Valid Values'", esettings.MaxLengthErrorLevel.SingleQuote(), "WHERE " + schemaField.Name + @" NOT IN " + values);
                 writer.WriteVerbose("[" + DateTime.Now + "] " + "Start Enum Valid Values check for " + schemaField.Name);
-                SqliteStatus = db.ExecuteQuery(sql, Validate);
+                SqliteStatus = db.ExecuteQuery(sql, Validate, ErrorCount);
                 writer.WriteVerbose("[" + DateTime.Now + "] " + "End Enum Valid Values check for " + schemaField.Name);
             }
             if (schemaField.Constraints.Unique)
@@ -172,7 +189,7 @@ namespace ETLyteDLL
                              FROM " + tableName + @" 
                              WHERE rowid IN (SELECT rowid FROM " + tableName + @" GROUP BY " + schemaField.Name + "HAVING COUNT(*) > 1;";
                 writer.WriteVerbose("[" + DateTime.Now + "] " + "Start Unique check for " + schemaField.Name);
-                SqliteStatus = db.ExecuteQuery(sql, Validate);
+                SqliteStatus = db.ExecuteQuery(sql, Validate, ErrorCount);
                 writer.WriteVerbose("[" + DateTime.Now + "] " + "End Unique check for " + schemaField.Name);
             }
         }
@@ -220,7 +237,6 @@ namespace ETLyteDLL
                 {
                     foreach (Match m in results)
                     {
-                        Console.WriteLine(m.Value);
                         sql = sql.Replace(m.Value, "LIMIT " + errorLimit.ToString());
                     }
                 }
@@ -231,7 +247,7 @@ namespace ETLyteDLL
 
             }
 
-            SqliteStatus = db.ExecuteQuery(sql, Validate, context);
+            SqliteStatus = db.ExecuteQuery(sql, Validate, ErrorCount, context);
         }
     }
 }

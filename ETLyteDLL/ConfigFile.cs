@@ -68,7 +68,11 @@ namespace ETLyteDLL
 
         [DefaultValue(Int32.MaxValue)]
         [JsonProperty(DefaultValueHandling = DefaultValueHandling.Populate)]
-        public int ErrorLimit { get; set; }
+        public int QueryErrorLimit { get; set; }
+
+        [DefaultValue(Int64.MaxValue)]
+        [JsonProperty(DefaultValueHandling = DefaultValueHandling.Populate)]
+        public Int64 FileErrorLimit { get; set; }
 
         public ConfigOutputs Outputs { get; set; }
         public SchemaErrorSettings SchemaErrorSettings { get; set; }

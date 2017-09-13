@@ -166,8 +166,15 @@ namespace ETLyteDLL
             return e.Current;
         }
 
+
         public int ExecuteQuery(string sql, IResultWriter sw, string context = "", Globals.ResultWriterDestination dest = Globals.ResultWriterDestination.stdOut)
         {
+            Action<Int64> temp = (i => i=0);
+            return ExecuteQuery(sql, sw, temp, context, dest);
+        }
+
+        public int ExecuteQuery(string sql, IResultWriter sw, Action<Int64> setResults, string context = "", Globals.ResultWriterDestination dest = Globals.ResultWriterDestination.stdOut)
+        { 
             if (sql.Contains("ROW_NUMBER("))
             {
                 SqliteExtensions.RowNumDictionary = new Dictionary<string, int>();
@@ -210,6 +217,7 @@ namespace ETLyteDLL
             finally
             {
                 sw.Flush();
+                setResults(DbConnection.Changes);
             }
 
             return resp;

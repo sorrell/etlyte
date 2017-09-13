@@ -21,7 +21,8 @@
 	"validate" : {
 		"ValidationSource": "Validation",
 		"FirstErrorOnly": "false",
-		"ErrorLimit": "2147483647",
+		"FileErrorLimit": "100",
+		"QueryErrorLimit": "25",
 		"Outputs": {
 			"StandardOutputType": "delimited",
 			"StandardOutputDelimiter": "\t",

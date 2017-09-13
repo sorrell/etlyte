@@ -26,7 +26,8 @@ namespace ETLyteExe
             set
             {
                 sqlitecode = value;
-                if (configFile != null && configFile.Db.StopOnError == true && value != 0)
+                if ((configFile != null && configFile.Db.StopOnError == true && value != 0)
+                    || value == 666)  // FileErrorLimit
                     throw new Exception("SQLite status <> 0");
             }
         }
@@ -202,7 +203,7 @@ namespace ETLyteExe
                     // file level validations
                     if (configFile.Steps.Validate)
                     {
-                        validator = new Validations(configFile.Validate.SchemaErrorSettings, db, Validate, (code => SqliteStatus = code));
+                        validator = new Validations(configFile.Validate.SchemaErrorSettings, db, Validate, (code => SqliteStatus = code), configFile.Validate, schemaFile.Name);
                         currentStep = SetCurrentStep("Validating file", Validate);
 
                         foreach (var schemaField in schemaFile.Fields)
@@ -229,7 +230,7 @@ namespace ETLyteExe
                     foreach (var validationFile in validationDirInfo.GetFiles("*.sql"))
                     {
                         currentStep = SetCurrentStep("Getting contents from: " + validationFile.Name, Validate);
-                        validator.ValidateCustom(validationFile, configFile.Validate.ErrorLimit);
+                        validator.ValidateCustom(validationFile, configFile.Validate.QueryErrorLimit);
                     }
                     Validate.EndContext();
 
