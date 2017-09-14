@@ -23,9 +23,9 @@ namespace ETLyteDLL
         IResultWriter Write(string line, Globals.ResultWriterDestination destination);
         IResultWriter BeginOutput(string beginStr);
         IResultWriter EndOutput(string endStr);
-        IResultWriter BeginContext(string context);
+        IResultWriter BeginContext(string context, Globals.ResultWriterDestination dest);
         IResultWriter EndContext();
-        IResultWriter WriteHeaders(List<string> headers);
+        IResultWriter WriteHeaders(List<string> headers, Globals.ResultWriterDestination dest);
         IResultWriter Reset();
         string ResultMode { get; }
         string Key { get; set; }

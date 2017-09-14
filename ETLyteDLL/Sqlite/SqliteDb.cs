@@ -197,8 +197,8 @@ namespace ETLyteDLL
                         var headers = stmt.Columns.Select(col => col.Name).ToList<string>();
 
                         sw
-                            .BeginContext(context)
-                            .WriteHeaders(headers)
+                            .BeginContext(context, dest)
+                            .WriteHeaders(headers, dest)
                             .WriteResult(stmt.Current, dest);
     
 	                    // Write the rest...

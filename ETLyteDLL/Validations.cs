@@ -209,10 +209,11 @@ namespace ETLyteDLL
             SqliteStatus = db.ExecuteQuery("SELECT * FROM " + tableName + "_Errors WHERE ErrorLevel = '" + errorLevel + "' ORDER BY ErrorType, ErrorColumn",
                                             Validate, "DETAIL RESULTS");
         }
-        public void ValidateCustom(FileInfo validationFile, int errorLimit)
+        public void ValidateCustom(FileInfo validationFile, int errorLimit, bool configWarnings)
         {
             string context = String.Empty;
             string sql = String.Empty;
+            bool isWarning = false;
 
             List<string> contents = File.ReadAllText(validationFile.FullName).Split('\n').ToList();
             foreach (var line in contents)
@@ -221,6 +222,8 @@ namespace ETLyteDLL
                 {
                     if (Regex.IsMatch(line, @"\s*-{2}\s*Context:.*"))
                         context += line;
+                    else if (Regex.IsMatch(line, @"\s*-{2}\s*ErrorLevel:.*[W|w]arning"))
+                        isWarning = true;
                 }
                 else
                     sql += " " + line;
@@ -247,7 +250,10 @@ namespace ETLyteDLL
 
             }
 
-            SqliteStatus = db.ExecuteQuery(sql, Validate, ErrorCount, context);
+            if (isWarning && configWarnings)
+                SqliteStatus = db.ExecuteQuery(sql, Validate, ErrorCount, context, Globals.ResultWriterDestination.Warning);
+            else if (!isWarning)
+                SqliteStatus = db.ExecuteQuery(sql, Validate, ErrorCount, context);
         }
     }
 }

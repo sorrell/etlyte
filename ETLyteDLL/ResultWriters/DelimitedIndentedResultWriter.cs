@@ -51,6 +51,7 @@ namespace ETLyteDLL
             stdOut.Flush();
             VerboseOut.Flush();
             ErrorOut.Flush();
+            WarningOut.Flush();
         }
 
         bool _disposed;
@@ -76,9 +77,11 @@ namespace ETLyteDLL
                 stdOut.Close();
                 VerboseOut.Close();
                 ErrorOut.Close();
+                WarningOut.Close();
                 stdOut.Dispose();
                 VerboseOut.Dispose();
                 ErrorOut.Dispose();
+                WarningOut.Dispose();
             }
 
             // release any unmanaged objects
@@ -137,14 +140,14 @@ namespace ETLyteDLL
             return this;
         }
 
-        public IResultWriter BeginContext(string context)
+        public IResultWriter BeginContext(string context, Globals.ResultWriterDestination dest)
         {
             //if (CurrentContext != null && CurrentContext.ContextsWritten++ > 0)
             //IncreaseIndent();
             if (CurrentContext != null)
                 ContextStack.Push(CurrentContext);
             CurrentContext = new ResultContext(context);
-            stdOut.WriteLine(string.Concat(Enumerable.Repeat(Delimiter, IndentationLevel)) + context);
+            Write(string.Concat(Enumerable.Repeat(Delimiter, IndentationLevel)) + context, dest);
             return this.IncreaseIndent();
         }
 
@@ -157,9 +160,9 @@ namespace ETLyteDLL
             return this.DecreaseIndent();
         }
 
-        public IResultWriter WriteHeaders(List<string> headers)
+        public IResultWriter WriteHeaders(List<string> headers, Globals.ResultWriterDestination dest)
         {
-            stdOut.WriteLine(string.Concat(Enumerable.Repeat(Delimiter, IndentationLevel)) + String.Join(Delimiter.ToString(), headers.ToArray()));
+            Write(string.Concat(Enumerable.Repeat(Delimiter, IndentationLevel)) + String.Join(Delimiter.ToString(), headers.ToArray()), dest);
             return this;
         }
 
@@ -210,6 +213,7 @@ namespace ETLyteDLL
         {
             stdOut.Flush();
             VerboseOut.Flush();
+            WarningOut.Flush();
             return this;
         }
     }

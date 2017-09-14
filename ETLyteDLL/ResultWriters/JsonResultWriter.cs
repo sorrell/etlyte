@@ -165,7 +165,7 @@ namespace ETLyteDLL
             return JsonConvert.SerializeObject(GetResultAsDictionary(row), JsonFormatting);
         }
 
-        public IResultWriter BeginContext(string context)
+        public IResultWriter BeginContext(string context, Globals.ResultWriterDestination dest)
         {
             if (CurrentContext != null)
             {
@@ -178,7 +178,7 @@ namespace ETLyteDLL
             }
             else
                 CurrentContext = new ResultContext(context, 1);
-            stdOut.WriteLine(context.DoubleQuote() + ": {");
+            Write(context.DoubleQuote() + ": {", dest);
             VerboseOut.WriteLine("Beginning context " + CurrentContext.Name);
             return this;
         }
@@ -199,7 +199,7 @@ namespace ETLyteDLL
             ContextsWritten = 0;
             return this;
         }
-        public IResultWriter WriteHeaders(List<string> headers)
+        public IResultWriter WriteHeaders(List<string> headers, Globals.ResultWriterDestination dest)
         {
             return this;
         }

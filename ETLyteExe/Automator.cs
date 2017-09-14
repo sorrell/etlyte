@@ -113,7 +113,7 @@ namespace ETLyteExe
                     currentStep = SetCurrentStep("Reading schema file: " + file.Name, Validate);
                     schemaFile = JsonConvert.DeserializeObject<SchemaFile>(File.ReadAllText(file.FullName));
 
-                    Validate.BeginContext(schemaFile.Name);
+                    Validate.BeginContext(schemaFile.Name, Globals.ResultWriterDestination.stdOut);
 
                     // create SQLiteModeler
                     currentStep = SetCurrentStep("Setting schema file: " + file.Name, Validate);
@@ -225,12 +225,12 @@ namespace ETLyteExe
                 //
                 if (configFile.Steps.Validate && !string.IsNullOrWhiteSpace(configFile.Validate.ValidationSource))
                 {
-                    Validate.BeginContext("Custom Data Validation Checks");
+                    Validate.BeginContext("Custom Data Validation Checks", Globals.ResultWriterDestination.stdOut);
                     
                     foreach (var validationFile in validationDirInfo.GetFiles("*.sql"))
                     {
                         currentStep = SetCurrentStep("Getting contents from: " + validationFile.Name, Validate);
-                        validator.ValidateCustom(validationFile, configFile.Validate.QueryErrorLimit);
+                        validator.ValidateCustom(validationFile, configFile.Validate.QueryErrorLimit, configFile.Validate.Outputs.Warnings);
                     }
                     Validate.EndContext();
 
