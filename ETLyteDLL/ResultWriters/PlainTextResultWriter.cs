@@ -41,7 +41,7 @@ namespace ETLyteDLL
         }
         public Stack<ResultContext> ContextStack { get; set; }
         public ResultContext CurrentContext { get; set; }
-
+        
         public PlainTextResultWriter(TextWriter std = null, TextWriter verbose = null, TextWriter e = null, TextWriter warning = null)
         {
             stdOut = std ?? TextWriter.Null;
@@ -50,6 +50,7 @@ namespace ETLyteDLL
             WarningOut = warning ?? TextWriter.Null;
             Delimiter = "|";
             ContextStack = new Stack<ResultContext>();
+            ResultMode = "plaintext";
         }
 
         public void Flush()
@@ -158,7 +159,7 @@ namespace ETLyteDLL
             return this;
         }
 
-        public IResultWriter EndContext()
+        public IResultWriter EndContext(Globals.ResultWriterDestination dest = Globals.ResultWriterDestination.stdOut)
         {
             if (ContextStack.Count > 0)
                 CurrentContext = ContextStack.Pop();

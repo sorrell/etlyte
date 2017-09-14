@@ -31,7 +31,7 @@ namespace ETLyteDLL
             WarningOut = warning ?? TextWriter.Null;
             Key = "";
             JsonFormatting = String.IsNullOrWhiteSpace(formatting) ? Formatting.None : Formatting.Indented;
-            ResultMode = "JSON";
+            ResultMode = "json";
             ContextStack = new Stack<ResultContext>();
         }
 
@@ -183,10 +183,9 @@ namespace ETLyteDLL
             return this;
         }
 
-        public IResultWriter EndContext()
+        public IResultWriter EndContext(Globals.ResultWriterDestination dest = Globals.ResultWriterDestination.stdOut)
         {
-            stdOut.WriteLine("}");
-            VerboseOut.WriteLine("Ending context " + CurrentContext.Name);
+            Write("}",dest);
             stdOut.Flush();
             VerboseOut.Flush();
             if (ContextStack.Count > 0)

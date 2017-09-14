@@ -31,7 +31,7 @@ namespace ETLyteDLL
         /// </summary>
         private List<Tuple<DataType, string, string>> SqliteToMsSqlLookup { get; set; }
         private Dictionary<string, bool> ContextColumnIsQuoted { get; set; }
-       
+
         public SqlServerResultWriter(string connectionString, SqliteDb db = null, TextWriter verbose = null, TextWriter e = null, TextWriter warning = null)
         {
             //var connstr = "Data Source=.;Initial Catalog=Test;Integrated Security=SSPI;Provider=SQLOLEDB;";
@@ -262,7 +262,7 @@ namespace ETLyteDLL
             return this;
         }
 
-        public IResultWriter EndContext()
+        public IResultWriter EndContext(Globals.ResultWriterDestination dest = Globals.ResultWriterDestination.stdOut)
         {
             if (ContextStack.Count > 0)
                 CurrentContext = ContextStack.Pop();

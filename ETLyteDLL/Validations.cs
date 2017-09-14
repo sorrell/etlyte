@@ -29,8 +29,8 @@ namespace ETLyteDLL
             errorCount += val;
             if (errorCount >= vOptions.FileErrorLimit)
             {
-                PrintSummaryResults(currentTable);
-                PrintDetailResults(currentTable, "Error");
+                PrintSummaryResults(currentTable, Globals.ResultWriterDestination.stdOut);
+                PrintDetailResults(currentTable, Globals.ResultWriterDestination.stdOut);
                 Validate.Write(Environment.NewLine + "---------------" + Environment.NewLine + "Error limit reached: " + errorCount + " errors detected " + vOptions.FileErrorLimit, Globals.ResultWriterDestination.stdOut);
                 SqliteStatusCallback(666);
             }
@@ -196,18 +196,20 @@ namespace ETLyteDLL
 
         public void PrintGeneralIssues(Globals.ResultWriterDestination dest)
         {
-            var errorLevel = (dest == Globals.ResultWriterDestination.Error) ? "Error" : "Warning";
-            SqliteStatus = db.ExecuteQuery("SELECT * FROM GeneralErrors WHERE ErrorLevel = '" + errorLevel + "' ORDER BY ErrorType, ErrorTable, ErrorColumn;", Validate, "General Errors");
+            string errorLevel = (dest == Globals.ResultWriterDestination.stdOut) ? "Error" : "Warning";
+            SqliteStatus = db.ExecuteQuery("SELECT * FROM GeneralErrors WHERE ErrorLevel = '" + errorLevel + "' ORDER BY ErrorType, ErrorTable, ErrorColumn;", Validate, "General Errors (" + errorLevel + ")");
         }
-        public void PrintSummaryResults(string tableName)
+        public void PrintSummaryResults(string tableName, Globals.ResultWriterDestination dest)
         {
-            SqliteStatus = db.ExecuteQuery("SELECT ErrorType, ErrorColumn, count(*) AS TotalCount FROM " + tableName + "_Errors GROUP BY ErrorType, ErrorColumn;",
-                                                            Validate, "SUMMARY RESULTS");
+            string errorLevel = (dest == Globals.ResultWriterDestination.stdOut) ? "Error" : "Warning";
+            SqliteStatus = db.ExecuteQuery("SELECT ErrorType, ErrorColumn, count(*) AS TotalCount FROM " + tableName + "_Errors WHERE ErrorLevel = '" + errorLevel + "' GROUP BY ErrorType, ErrorColumn;",
+                                                            Validate, "SUMMARY RESULTS (" + errorLevel + ")", dest);
         }
-        public void PrintDetailResults(string tableName, string errorLevel)
+        public void PrintDetailResults(string tableName, Globals.ResultWriterDestination dest)
         {
+            string errorLevel = (dest == Globals.ResultWriterDestination.stdOut) ? "Error" : "Warning";
             SqliteStatus = db.ExecuteQuery("SELECT * FROM " + tableName + "_Errors WHERE ErrorLevel = '" + errorLevel + "' ORDER BY ErrorType, ErrorColumn",
-                                            Validate, "DETAIL RESULTS");
+                                            Validate, "DETAIL RESULTS (" + errorLevel + ")", dest);
         }
         public void ValidateCustom(FileInfo validationFile, int errorLimit, bool configWarnings)
         {
@@ -251,9 +253,9 @@ namespace ETLyteDLL
             }
 
             if (isWarning && configWarnings)
-                SqliteStatus = db.ExecuteQuery(sql, Validate, ErrorCount, context, Globals.ResultWriterDestination.Warning);
+                SqliteStatus = db.ExecuteQuery(sql, Validate, ErrorCount, "(Warning) " + context, Globals.ResultWriterDestination.Warning);
             else if (!isWarning)
-                SqliteStatus = db.ExecuteQuery(sql, Validate, ErrorCount, context);
+                SqliteStatus = db.ExecuteQuery(sql, Validate, ErrorCount, "(Error) " + context);
         }
     }
 }

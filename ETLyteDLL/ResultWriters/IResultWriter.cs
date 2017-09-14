@@ -24,13 +24,14 @@ namespace ETLyteDLL
         IResultWriter BeginOutput(string beginStr);
         IResultWriter EndOutput(string endStr);
         IResultWriter BeginContext(string context, Globals.ResultWriterDestination dest);
-        IResultWriter EndContext();
+        IResultWriter EndContext(Globals.ResultWriterDestination dest);
         IResultWriter WriteHeaders(List<string> headers, Globals.ResultWriterDestination dest);
         IResultWriter Reset();
         string ResultMode { get; }
         string Key { get; set; }
         Stack<ResultContext> ContextStack { get; set; }
         ResultContext CurrentContext { get; set; }
+
 		void Flush();
     
 	

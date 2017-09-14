@@ -114,9 +114,17 @@ namespace ETLyteExe
                     schemaFile = JsonConvert.DeserializeObject<SchemaFile>(File.ReadAllText(file.FullName));
 
                     Validate.BeginContext(schemaFile.Name, Globals.ResultWriterDestination.stdOut);
+                    if (configFile.Validate.Outputs.Warnings && (configFile.Validate.Outputs.StandardOutputConnectionString != configFile.Validate.Outputs.WarningsOutputConnectionString))
+                    {
+                        if (Validate.ResultMode == "delimited")
+                            Validate.Write(schemaFile.Name, Globals.ResultWriterDestination.Warning);
+                        else if (Validate.ResultMode == "json")
+                            Validate.BeginContext(schemaFile.Name, Globals.ResultWriterDestination.Warning);
+                    }
 
-                    // create SQLiteModeler
-                    currentStep = SetCurrentStep("Setting schema file: " + file.Name, Validate);
+
+                        // create SQLiteModeler
+                        currentStep = SetCurrentStep("Setting schema file: " + file.Name, Validate);
                     modeler = new SqliteModeler().SetSchemaFile(schemaFile);
 
                     // create SQL from schemafile
@@ -172,7 +180,7 @@ namespace ETLyteExe
                         if (files.Count == 0)
                         {
                             SqliteStatus = db.ExecuteQuery("INSERT INTO GeneralErrors VALUES ('File Missing', 'None', '" + schemaFile.Name + "', 'Error', 'Failed to find file matching " + schemaFile.Flatfile + "');", Validate);
-                            Validate.EndContext();
+                            Validate.EndContext(Globals.ResultWriterDestination.stdOut);
                             continue; // no files, continue the loop so no validation happens
                         }
                         else
@@ -212,11 +220,21 @@ namespace ETLyteExe
                         }
 
                         if (schemaFile.SummarizeResults)
-                            validator.PrintSummaryResults(schemaFile.Name);
-                        validator.PrintDetailResults(schemaFile.Name, "Error");
+                        {
+                            validator.PrintSummaryResults(schemaFile.Name, Globals.ResultWriterDestination.stdOut);
+                            if (configFile.Validate.Outputs.Warnings)
+                                validator.PrintSummaryResults(schemaFile.Name, Globals.ResultWriterDestination.Warning);
+                        }
+
+                        validator.PrintDetailResults(schemaFile.Name, Globals.ResultWriterDestination.stdOut);
+                        if (configFile.Validate.Outputs.Warnings)
+                            validator.PrintDetailResults(schemaFile.Name, Globals.ResultWriterDestination.Warning);
                     }
 
-                    Validate.EndContext();
+                    Validate.EndContext(Globals.ResultWriterDestination.stdOut);
+                    if (Validate.ResultMode == "json" && configFile.Validate.Outputs.Warnings
+                        && (configFile.Validate.Outputs.StandardOutputConnectionString != configFile.Validate.Outputs.WarningsOutputConnectionString))
+                        Validate.EndContext(Globals.ResultWriterDestination.Warning);
                 } // end for each flat file
 
                 //
@@ -225,19 +243,30 @@ namespace ETLyteExe
                 //
                 if (configFile.Steps.Validate && !string.IsNullOrWhiteSpace(configFile.Validate.ValidationSource))
                 {
-                    Validate.BeginContext("Custom Data Validation Checks", Globals.ResultWriterDestination.stdOut);
+                    string ctx = "Custom Data Validation Checks";
+                    Validate.BeginContext(ctx, Globals.ResultWriterDestination.stdOut);
+                    if (configFile.Validate.Outputs.Warnings && (configFile.Validate.Outputs.StandardOutputConnectionString != configFile.Validate.Outputs.WarningsOutputConnectionString))
+                    {
+                        if (Validate.ResultMode == "delimited")
+                            Validate.Write(ctx, Globals.ResultWriterDestination.Warning);
+                        else if (Validate.ResultMode == "json")
+                            Validate.BeginContext(ctx, Globals.ResultWriterDestination.Warning);
+                    }
                     
                     foreach (var validationFile in validationDirInfo.GetFiles("*.sql"))
                     {
                         currentStep = SetCurrentStep("Getting contents from: " + validationFile.Name, Validate);
                         validator.ValidateCustom(validationFile, configFile.Validate.QueryErrorLimit, configFile.Validate.Outputs.Warnings);
                     }
-                    Validate.EndContext();
+                    Validate.EndContext(Globals.ResultWriterDestination.stdOut);
+                    if (Validate.ResultMode == "json" && configFile.Validate.Outputs.Warnings
+                        && (configFile.Validate.Outputs.StandardOutputConnectionString != configFile.Validate.Outputs.WarningsOutputConnectionString))
+                        Validate.EndContext(Globals.ResultWriterDestination.Warning);
 
                 }
                 if (configFile.Steps.Validate)
                 {
-                    validator.PrintGeneralIssues(Globals.ResultWriterDestination.Error);
+                    validator.PrintGeneralIssues(Globals.ResultWriterDestination.stdOut);
                     if (configFile.Validate.Outputs.Warnings)
                         validator.PrintGeneralIssues(Globals.ResultWriterDestination.Warning);
                 }

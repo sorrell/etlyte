@@ -18,6 +18,7 @@ namespace ETLyteDLL
                 MaxLengthErrorLevel =
                 UniqueErrorLevel =
                 PatternErrorLevel = "Error";
+            MalformedHeaderErrorLevel = "Warning";
             ErrorOnUnrequiredWithBadDatatype = false;
         }
         public string DatatypeErrorLevel { get; set; }
@@ -28,6 +29,7 @@ namespace ETLyteDLL
         public string MaxLengthErrorLevel { get; set; }
         public string UniqueErrorLevel { get; set; }
         public string PatternErrorLevel { get; set; }
+        public string MalformedHeaderErrorLevel { get; set; }
         public bool ErrorOnUnrequiredWithBadDatatype { get; set; }
     }
 }

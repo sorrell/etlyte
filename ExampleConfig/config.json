@@ -21,8 +21,8 @@
 	"validate" : {
 		"ValidationSource": "Validation",
 		"FirstErrorOnly": "false",
-		"FileErrorLimit": "100",
-		"QueryErrorLimit": "25",
+		"FileErrorLimit": "2147483647",
+		"QueryErrorLimit": "2147483647",
 		"Outputs": {
 			"StandardOutputType": "delimited",
 			"StandardOutputDelimiter": "\t",
@@ -30,10 +30,20 @@
 			"ErrorOutputConnectionString": "Error.log",
 			"Verbose": "true",
 			"VerboseOutputConnectionString": "stdout.txt",
-			"Warnings": "false",
-			"WarningsDestination": "W.Log"	
+			"Warnings": "true",
+			"WarningsOutputConnectionString": "output.txt"	
 		}
-		, "SchemaErrorSettings": {}
+		, "SchemaErrorSettings": {
+			"DatatypeErrorLevel": "Warning",
+			"RequiredErrorLevel": "Error",
+			"MinimumErrorLevel": "Error",
+			"MaximumErrorLevel": "Error",
+			"MinLengthErrorLevel": "Error",
+			"MaxLengthErrorLevel": "Error",
+			"UniqueErrorLevel": "Error",
+			"PatternErrorLevel": "Error",
+			"MalformedHeaderErrorLevel": "Warning"
+		}
 	},
 	"transform" : {
 		"Transformations": "../transformations/Folder",

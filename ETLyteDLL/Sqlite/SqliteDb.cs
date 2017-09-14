@@ -207,7 +207,7 @@ namespace ETLyteDLL
                             numResults++;
 	                        sw.WriteResult(stmt.Current, dest);
 	                    }
-                        sw.EndContext();
+                        sw.EndContext(dest);
                     }
 	            }
             }
@@ -316,7 +316,7 @@ namespace ETLyteDLL
                             {
                                 var invalidHeaders = flatfile.ValidateHeaderNames();
                                 if (!String.IsNullOrEmpty(invalidHeaders))
-                                    sqliteStatus = raw.sqlite3_exec(RawDbConnection, "INSERT INTO GeneralErrors VALUES('Malformed Header','None', + '" + flatfile.Tablename.ToUpper() + "', 'Warning', 'Malformed Header Row - " + invalidHeaders + "');");
+                                    sqliteStatus = raw.sqlite3_exec(RawDbConnection, "INSERT INTO GeneralErrors VALUES('Malformed Header','None', + '" + flatfile.Tablename.ToUpper() + "', '" + configFile.Validate.SchemaErrorSettings.MalformedHeaderErrorLevel + "', 'Malformed Header Row - " + invalidHeaders + "');");
                             }
                             i++;
                             continue;

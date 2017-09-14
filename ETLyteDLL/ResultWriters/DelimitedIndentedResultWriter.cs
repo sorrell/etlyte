@@ -44,6 +44,7 @@ namespace ETLyteDLL
             IndentationLevel = 0;
             Delimiter = delimiter;
             ContextStack = new Stack<ResultContext>();
+            ResultMode = "delimited";
         }
 
         public void Flush()
@@ -151,7 +152,7 @@ namespace ETLyteDLL
             return this.IncreaseIndent();
         }
 
-        public IResultWriter EndContext()
+        public IResultWriter EndContext(Globals.ResultWriterDestination dest = Globals.ResultWriterDestination.stdOut)
         {
             stdOut.Flush();
             VerboseOut.Flush();
