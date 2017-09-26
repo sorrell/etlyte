@@ -42,13 +42,13 @@ namespace ETLyteDLL
         public Stack<ResultContext> ContextStack { get; set; }
         public ResultContext CurrentContext { get; set; }
         
-        public PlainTextResultWriter(TextWriter std = null, TextWriter verbose = null, TextWriter e = null, TextWriter warning = null)
+        public PlainTextResultWriter(TextWriter std = null, TextWriter verbose = null, TextWriter e = null, TextWriter warning = null, string delimiter = "|")
         {
             stdOut = std ?? TextWriter.Null;
             VerboseOut = verbose ?? TextWriter.Null;
             ErrorOut = e ?? TextWriter.Null;
             WarningOut = warning ?? TextWriter.Null;
-            Delimiter = "|";
+            Delimiter = delimiter;
             ContextStack = new Stack<ResultContext>();
             ResultMode = "plaintext";
         }

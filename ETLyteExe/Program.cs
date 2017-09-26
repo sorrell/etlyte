@@ -19,8 +19,16 @@ namespace ETLyteExe
         class Options
         {
             [Option('i', "interactive", Default = false,
-              HelpText = "Starts EvTLite in interactive mode")]
+              HelpText = "Starts ETLyte in interactive mode")]
             public bool Interactive { get; set; }
+
+            [Option('c', "command", Default = "",
+                HelpText = "Command to execute against database")]
+            public string Command { get; set; }
+
+            [Option('f', "file", Default = "",
+                HelpText = "File to execute")]
+            public string File { get; set; }
         }
         
 
@@ -30,14 +38,18 @@ namespace ETLyteExe
             int exitCode = 0;
             try
             {
-                if(args.Contains("--help") || args.Contains("--version")) return 0;
+                //if(args.Contains("--help") || args.Contains("--version")) return 0;
                 bool interactive = false;
+                string cmd = "";
+                string filename = "";
                 var option = CommandLine.Parser.Default.ParseArguments<Options>(args);  //new Options();
                 option
                     .MapResult(
                         options =>
                         {
                             interactive = options.Interactive;
+                            cmd = options.Command;
+                            filename = options.File;
                             return 0;
                         },
                         errors => { return 1; });
@@ -47,7 +59,7 @@ namespace ETLyteExe
                 }
                 else
                 {
-                    exitCode = Automator.Run(configFile);
+                    exitCode = Automator.Run(configFile, cmd, filename);
                 }
             }
             
