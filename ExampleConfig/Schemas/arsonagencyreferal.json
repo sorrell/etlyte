@@ -7,25 +7,33 @@
   "fields": [
   {
     "name": "STATE",
-    "required": true,
-    "minLength": 2,
-    "maxLength": 2
+    "constraints": {
+      "required": true,
+      "minLength": 2,
+      "maxLength": 2
+    }
   },
   {
     "name": "FDID",
-    "required": true
+    "constraints": {
+      "required": true
+    }
   },
   {
     "name": "INC_DATE",
-    "required": true,
-    "minLength": 8,
-    "maxLength": 8,
-    "datatype": "DateTime",
-    "datePattern": "Mddyyyy"
+    "constraints": {
+      "required": true,
+      "minLength": 8,
+      "maxLength": 8,
+      "datatype": "DateTime",
+      "datePattern": "Mddyyyy"
+    }
   },
   {
     "name": "INC_NO",
-    "required": true
+    "constraints": {
+      "required": true
+    }
   },
   {
     "name": "EXP_NO",

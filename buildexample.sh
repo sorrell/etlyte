@@ -17,6 +17,6 @@ cp ETLyteDLL/bin/Release/x64/* ETLyte/x64
 cp ETLyteExe/bin/Release/*.exe ETLyte
 chmod +x ETLyte/ETLyteExe.exe
 rm -f ETLyte/*vshost.exe
-rm -f ETLyte.zip
+rm -f ETLyte_Example.zip
 zip -r ETLyte_Example.zip ETLyte
 rm -rf ETLyte
