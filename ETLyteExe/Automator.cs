@@ -65,7 +65,7 @@ namespace ETLyteExe
                 {
                     Validate = new PlainTextResultWriter(Console.Out, Console.Out, Console.Out, Console.Out, configFile.Validate.Outputs.StandardOutputDelimiter);
                     string sql = cmd;
-                    db = new SqliteDb(configFile.Db.DbName, true, null, configFile.Extract.Delimiter, configFile.Db.LogFile);
+                    db = new SqliteDb(configFile.Db.DbName, true, null, configFile.Extract.Delimiter, configFile.Db.LogFile).Init();
                     SqliteStatus = db.ExecuteQuery(sql, Validate, "Command line query");
                 }
 
@@ -81,7 +81,7 @@ namespace ETLyteExe
                 {
                     Validate = new PlainTextResultWriter(Console.Out, Console.Out, Console.Out, Console.Out, configFile.Validate.Outputs.StandardOutputDelimiter);
                     string sql = GetSqlContents(filename);
-                    db = new SqliteDb(configFile.Db.DbName, true, null, configFile.Extract.Delimiter, configFile.Db.LogFile);
+                    db = new SqliteDb(configFile.Db.DbName, true, null, configFile.Extract.Delimiter, configFile.Db.LogFile).Init();
                     SqliteStatus = db.ExecuteQuery(sql, Validate, "Command line file execution");
                 }
 
@@ -101,7 +101,7 @@ namespace ETLyteExe
                     Validations validator = null;
                     SqliteStatus = 0;
                     string sql;
-                    db = new SqliteDb(configFile.Db.DbName, configFile.Db.UseExistingDb, null, configFile.Extract.Delimiter, configFile.Db.LogFile);
+                    db = new SqliteDb(configFile.Db.DbName, configFile.Db.UseExistingDb, null, configFile.Extract.Delimiter, configFile.Db.LogFile).Init();
 
                     // NPS_TODO add error outputting for when these fail to load
                     if (configFile.Steps.Validate)
@@ -279,6 +279,9 @@ namespace ETLyteExe
                     if (configFile.Steps.Validate && !string.IsNullOrWhiteSpace(configFile.Validate.ValidationSource))
                     {
                         string ctx = "Custom Data Validation Checks";
+                        // Perhaps we have no flatfiles but do have a db and custom validations - in this case validator would be null
+                        if (validator == null)
+                            validator = new Validations(configFile.Validate.SchemaErrorSettings, db, Validate, (code => SqliteStatus = code), configFile.Validate, "GeneralErrors");
                         Validate.BeginContext(ctx, Globals.ResultWriterDestination.stdOut);
                         if (configFile.Validate.Outputs.Warnings && (configFile.Validate.Outputs.StandardOutputConnectionString != configFile.Validate.Outputs.WarningsOutputConnectionString))
                         {
@@ -336,6 +339,7 @@ namespace ETLyteExe
                 }
                 finally
                 {
+                    db.Close();
                     Validate.Dispose();
                 }
             }

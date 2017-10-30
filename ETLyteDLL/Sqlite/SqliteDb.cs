@@ -6,6 +6,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using SQLitePCL.pretty;
+using SQLitePCL.Functions.Pretty;
 using SQLitePCL;
 using CsvHelper;
 
@@ -61,6 +62,18 @@ namespace ETLyteDLL
 			}
         }
 
+        public SqliteDb Init()
+        {
+            SQLitePCL.Batteries.Init();
+            return this;
+        }
+
+        public void Close()
+        {
+            RawDbConnection.Dispose();
+            DbConnection.Dispose();
+        }
+
         public sqlite3 RawDbConnection
         {
             get
@@ -71,6 +84,7 @@ namespace ETLyteDLL
                         raw.sqlite3_open(":memory:", out _rawdbcon);
                     else
                         raw.sqlite3_open(_dbname, out _rawdbcon);
+
                 }
                 return _rawdbcon;
             }
@@ -82,6 +96,7 @@ namespace ETLyteDLL
             {
                 if (_dbcon == null)
                 {
+
                     SQLiteDatabaseConnectionBuilder dbbuilder;
                     if (_dbname == null)
                         dbbuilder = SQLiteDatabaseConnectionBuilder
@@ -89,30 +104,8 @@ namespace ETLyteDLL
                     else
                         dbbuilder = SQLiteDatabaseConnectionBuilder
                                 .Create(_dbname);
-                               
-                    _dbcon = dbbuilder
-                                .WithScalarFunc("REGEXP", SqliteExtensions.regexFunc)
-                                .WithScalarFunc("ISDATETIME", SqliteExtensions.dateFunc)
-                                .WithScalarFunc("ISBOOL", SqliteExtensions.boolFunc)
-                                .WithScalarFunc("ISBYTE", SqliteExtensions.byteFunc)
-                                .WithScalarFunc("ISSBYTE", SqliteExtensions.sbyteFunc)
-                                .WithScalarFunc("ISSHORT", SqliteExtensions.shortFunc)
-                                .WithScalarFunc("ISUSHORT", SqliteExtensions.ushortFunc)
-                                .WithScalarFunc("ISINT", SqliteExtensions.intFunc)
-                                .WithScalarFunc("ISUINT", SqliteExtensions.uintFunc)
-                                .WithScalarFunc("ISLONG", SqliteExtensions.longFunc)
-                                .WithScalarFunc("ISULONG", SqliteExtensions.ulongFunc)
-                                .WithScalarFunc("ISFLOAT", SqliteExtensions.floatFunc)
-                                .WithScalarFunc("ISDOUBLE", SqliteExtensions.doubleFunc)
-                                .WithScalarFunc("ISDECIMAL", SqliteExtensions.decimalFunc)
-                                .WithScalarFunc("ISCHAR", SqliteExtensions.charFunc)
-                                .WithScalarFunc("ISTIMESPAN", SqliteExtensions.timespanFunc)
-                                .WithScalarFunc("ISURI", SqliteExtensions.uriFunc)
-                                .WithScalarFunc("DATECHK", SqliteExtensions.dateCompFunc)
-                                .WithScalarFunc("COMPARE", SqliteExtensions.compareFunc)
-                                .WithScalarFunc("UUID", SqliteExtensions.uuidFunc)
-                                .WithScalarFunc("ROW_NUMBER", SqliteExtensions.rowNumFunc)
-                                .Build();
+
+                    _dbcon = PrettyFn.Init(dbbuilder);                    
                 }
                 return _dbcon;
             }
@@ -178,7 +171,7 @@ namespace ETLyteDLL
             Int64 numResults = 0;
             if (sql.Contains("ROW_NUMBER("))
             {
-                SqliteExtensions.RowNumDictionary = new Dictionary<string, int>();
+                SQLitePCL.Functions.core.CoreFn.RowNumDictionary = new Dictionary<string, int>();
             }
                 if (sql.Contains("JSON("))
             {

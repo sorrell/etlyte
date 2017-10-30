@@ -11,6 +11,7 @@ cp -rf ExampleConfig/SeedData ETLyte
 cp -rf ExampleConfig/Validation ETLyte
 cp ExampleConfig/config.json ETLyte
 cp ETLyteDLL/bin/Release/*.dll ETLyte
+cp ETLyteDLL/bin/Release/*.so ETLyte
 cp ETLyteExe/bin/Release/*.dll ETLyte
 cp ETLyteDLL/bin/Release/x86/* ETLyte/x86
 cp ETLyteDLL/bin/Release/x64/* ETLyte/x64

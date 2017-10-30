@@ -9,6 +9,7 @@ cp -rf Schemas ETLyte
 cp -rf SeedData ETLyte
 cp -rf Validation ETLyte
 cp ETLyteDLL/bin/Release/*.dll ETLyte
+cp ETLyteDLL/bin/Release/*.so ETLyte
 cp ETLyteExe/bin/Release/*.dll ETLyte
 cp ETLyteDLL/bin/Release/x86/* ETLyte/x86
 cp ETLyteDLL/bin/Release/x64/* ETLyte/x64
