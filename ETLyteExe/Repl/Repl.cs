@@ -13,72 +13,81 @@ namespace ETLyteExe
         public static IResultWriter Writer;
         public static void Run(string[] args, ConfigFile configFile)
         {
-            string dbname = (args.Length > 1) && (args[1] != null) ? args[1] : null;
-            SqliteDb db = new SqliteDb(dbname, true, null, configFile.Extract.Delimiter, configFile.Db.LogFile);
-            if (dbname == null)
-                dbname = "a transient in-memory database.";
+            try
+            {
+                string dbname = (args.Length > 1) && (args[1] != null) ? args[1] : null;
+                SqliteDb db = new SqliteDb(dbname, true, null, configFile.Extract.Delimiter, configFile.Db.LogFile).Init();
+                if (dbname == null)
+                    dbname = "a transient in-memory database.";
 
-            Writer = new PlainTextResultWriter(Console.Out, Console.Out, Console.Out);
-            var tables = db.GetTableNames();
-            var columns = new List<string>();
-            foreach (var t in tables)
-                foreach (var col in db.GetColumnNamesForTable(t))
-                    if (!columns.Contains(col))
-                        columns.Add(col);
-            var startupMsg = "ETLyte v. " + Globals.Version;
-            startupMsg += Environment.NewLine + "Connected to " + dbname;
-            string prompt = "ETLyte> ";
-            CSharpEvaluator eval = new CSharpEvaluator();
-            InteractivePrompt.Run(
-                ((cmd, rawinput, completions) =>
-                {
-                    // add new completions
-                    foreach (var c in cmd.Split(' '))
-                        if (!completions.Contains(c))
-                            completions.Add(c);
-
-                    string retstr = "";
-                    var arg = cmd.Split(' ');
-                    var firstArg = arg[0];
-                    if (firstArg.Trim()[0] == '.')
+                Writer = new PlainTextResultWriter(Console.Out, Console.Out, Console.Out);
+                var tables = db.GetTableNames();
+                var columns = new List<string>();
+                foreach (var t in tables)
+                    foreach (var col in db.GetColumnNamesForTable(t))
+                        if (!columns.Contains(col))
+                            columns.Add(col);
+                var startupMsg = "ETLyte v. " + Globals.Version;
+                startupMsg += Environment.NewLine + "Connected to " + dbname;
+                string prompt = "ETLyte> ";
+                CSharpEvaluator eval = new CSharpEvaluator();
+                InteractivePrompt.Run(
+                    ((cmd, rawinput, completions) =>
                     {
-                        switch (firstArg.ToLower())
+                        // add new completions
+                        foreach (var c in cmd.Split(' '))
+                            if (!completions.Contains(c))
+                                completions.Add(c);
+
+                        string retstr = "";
+                        var arg = cmd.Split(' ');
+                        var firstArg = arg[0];
+                        if (firstArg.Trim()[0] == '.')
                         {
-                            case ".tables":
-                                var sqlcmd = "SELECT name FROM sqlite_master WHERE type='table';";
-                                if (db.ExecuteQuery(sqlcmd, Writer) != 0)
-                                    Writer.WriteStd(db.LastError);
-                                break;
-                            case ".output":
-                                if (arg[1].ToLower() == "json")
-                                {
-                                    Writer = new JsonResultWriter(Console.Out, Console.Out, Console.Out);
-                                    retstr = "Switched to JSON output" + Environment.NewLine;
-                                }
-                                else if (arg[1].ToLower() == "plain")
-                                {
-                                    Writer = new PlainTextResultWriter(Console.Out, Console.Out, Console.Out);
-                                    retstr = "Switched to plain output" + Environment.NewLine;
-                                }
-                                break;
+                            switch (firstArg.ToLower())
+                            {
+                                case ".tables":
+                                    var sqlcmd = "SELECT name FROM sqlite_master WHERE type='table';";
+                                    if (db.ExecuteQuery(sqlcmd, Writer) != 0)
+                                        Writer.WriteStd(db.LastError);
+                                    break;
+                                case ".output":
+                                    if (arg[1].ToLower() == "json")
+                                    {
+                                        Writer = new JsonResultWriter(Console.Out, Console.Out, Console.Out);
+                                        retstr = "Switched to JSON output" + Environment.NewLine;
+                                    }
+                                    else if (arg[1].ToLower() == "plain")
+                                    {
+                                        Writer = new PlainTextResultWriter(Console.Out, Console.Out, Console.Out);
+                                        retstr = "Switched to plain output" + Environment.NewLine;
+                                    }
+                                    break;
 
-                            default:
-                                retstr = "Unrecognized command." + Environment.NewLine;
-                                break;
+                                default:
+                                    retstr = "Unrecognized command." + Environment.NewLine;
+                                    break;
+                            }
                         }
-                    }
-                    else if (firstArg.Trim()[0] == '{')
-                    {
-                        retstr = eval.HandleCmd(cmd.Trim().Substring(1)) + Environment.NewLine;
-                    }
-                    else
-                    {
-                        if (db.ExecuteQuery(cmd, Writer) != 0)
-                            Writer.WriteStd(db.LastError);
-                    }
+                        else if (firstArg.Trim()[0] == '{')
+                        {
+                            retstr = eval.HandleCmd(cmd.Trim().Substring(1)) + Environment.NewLine;
+                        }
+                        else
+                        {
+                            if (db.ExecuteQuery(cmd, Writer) != 0)
+                                Writer.WriteStd(db.LastError);
+                        }
 
-                    return retstr;
-                }), prompt, startupMsg, tables.Concat(columns).ToList());
+                        return retstr;
+                    }), prompt, startupMsg, tables.Concat(columns).ToList());
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message);
+                Console.WriteLine(e.InnerException);
+                Console.WriteLine(e.StackTrace);
+            }
         }
     }
 }
